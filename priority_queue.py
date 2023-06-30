@@ -1,3 +1,6 @@
+from priority_queue_view import PriorityQueueView
+
+
 def get_left_child(index):
     return 2 * index + 1
 
@@ -13,6 +16,7 @@ class PriorityQueue(object):
     def __init__(self, less_than):
         self.less_than = less_than
         self.nodes = []
+        self.view = PriorityQueueView(self.nodes)
     
     def _min(self, a, b):
         if self.less_than(a, b):
@@ -32,28 +36,34 @@ class PriorityQueue(object):
     def _in_range(self, index):
         return 0 <= index < self.size()
     
+    def _swap(self, i, j):
+        self.view.swap(i, j)
+        self.nodes[i], self.nodes[j] = self.nodes[j], self.nodes[i]
+    
+    def _compare(self, a, b):
+        self.view.compare(a, b)
+        return self.less_than(a, b)
+    
     def _fix_up(self, index):
         """
             appended new element at [index] in the array, move upwards until parent is smaller
         """
-        while self._in_range(get_parent(index)) and self.less_than(self.nodes[index], self.nodes[get_parent(index)]):
-            temp = self.nodes[index]
-            self.nodes[index] = self.nodes[get_parent(index)]
-            self.nodes[get_parent(index)] = temp
+        while self._in_range(get_parent(index)) and self._compare(self.nodes[index], self.nodes[get_parent(index)]):
+            self._swap(index, get_parent(index))
             index = get_parent(index)
     
     def _fix_down(self, index):
         while self._in_range(get_left_child(index)):
             # finding smaller child
             smallerChild = get_left_child(index)
-            if (not smallerChild == self.size() - 1) and self.less_than(self.nodes[smallerChild + 1], self.nodes[smallerChild]):
+            if (not smallerChild == self.size() - 1) and self._compare(self.nodes[smallerChild + 1], self.nodes[smallerChild]):
                 smallerChild = smallerChild + 1
             
             # swap smaller child with cur index if necessary
-            if self.less_than(self.nodes[index], self.nodes[smallerChild]):
+            if self._compare(self.nodes[index], self.nodes[smallerChild]):
                 break
             
-            self.nodes[index], self.nodes[smallerChild] = self.nodes[smallerChild], self.nodes[index]
+            self._swap(index, smallerChild)
             index = smallerChild 
         
     
